@@ -1,0 +1,261 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "CRS-API-recommender"
+  },
+  "tags": [
+    {
+      "name": "Dialog Requests"
+    }
+  ],
+  "paths": {
+    "/init": {
+      "get": {
+        "tags": ["Dialog Requests"],
+        "summary": "Init Dialog",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/initDialogResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/second": {
+      "post": {
+        "tags": ["Dialog Requests"],
+        "summary": "Second Dialog Interaction",
+        "requestBody": {
+          "description": "Second Dialog Interaction Post Object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/secondRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/secondResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/third": {
+      "post": {
+        "tags": ["Dialog Requests"],
+        "summary": "Third Dialog Interaction",
+        "requestBody": {
+          "description": "Third Dialog Interaction Post Object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/thirdRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/thirdResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/answer": {
+      "post": {
+        "tags": ["Dialog Requests"],
+        "summary": "Answer Dialog Interaction",
+        "requestBody": {
+          "description": "Answer Dialog Interaction Post Object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/answerRequestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/answerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "initDialogResponse": {
+        "type": "object",
+        "properties": {
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "secondRequestBody": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "type": "string"
+          }
+        }
+      },
+      "secondResponse": {
+        "type": "object",
+        "properties": {
+          "characteristics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "thirdRequestBody": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string"
+          }
+        }
+      },
+      "thirdResponse": {
+        "type": "object",
+        "properties": {
+          "ask": {
+            "type": "number"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "number"
+                },
+                "object": {
+                  "type": "string"
+                },
+                "property": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "answerRequestBody": {
+        "type": "object",
+        "properties": {
+          "ask": {
+            "type": "number"
+          },
+          "resp": {
+            "type": "string"
+          }
+        }
+      },
+      "answerResponse": {
+        "type": "object",
+        "properties": {
+          "ask": {
+            "type": "number"
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "number"
+                },
+                "object": {
+                  "type": "string"
+                },
+                "property": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
