@@ -25,6 +25,8 @@ def third_interation(sub_graph, o_chosen, p_chosen, ratings):
 
 def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist):
 
+    if len(sub_graph) == 0 or len(sub_graph.index.unique()) == 0:
+        return { "response": "There are no movies that corresponds to your preferences on our database or you already watched them all"}, True, [], []
     # while user did not like recommendation or property suggestion do not shrink graph again
     # or if sub graph is empty there are no entries or there are no movies, recommendation fails
     if resp == "no" or resp == "watched":
@@ -43,7 +45,7 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
                 o_topn = str(dif_properties.iloc[i]['obj'])
                 attributes.append({ "id": i+1, "property": p_topn, "object": o_topn})
 
-            return { "attributes":  attributes, "ask": ask }, True, top_p
+            return { "attributes":  attributes, "ask": ask }, True, top_p, dif_properties
 
         # if ask != 0 recommend movie
         else:
@@ -51,9 +53,7 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
 
             # case if all movies with properties were recommended but no movies were accepted by user
             if len(top_m.index) == 0:
-                # print("\nYou have already watched all the movies with the properties you liked :(")
-                # end_conversation = True
-                return None
+                return { "response": "You have already watched all the movies with the properties you liked :("}, True, [], []
 
             rec = full_prop_graph.loc[top_m.index[0]]['title'].unique()[0]
             props = []
@@ -62,19 +62,19 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
                 t = prefered_prop[i]
                 props.append({ "id": i+1, "property": str(t[0]), "object": str(t[1])})
 
-            return { "recommendation": rec, "properties": props, "ask": ask }, True, top_m
+            return { "recommendation": rec, "properties": props, "ask": ask }, True, top_m, []
 
     else:
-        return graph.shrink_graph(sub_graph, p_chosen, o_chosen), False, []
+        return graph.shrink_graph(sub_graph, p_chosen, o_chosen), False, [], []
 
-def answer(sub_graph, ask, ans, watched, edgelist, prefered_objects, prefered_prop, top):
+def answer(sub_graph, ask, ans, watched, edgelist, prefered_objects, prefered_prop, top, dif_properties, full_prop_graph, user_id):
     if ask == 0:
-        return properties(sub_graph, ans, watched, edgelist, prefered_objects, prefered_prop, top)
+        return properties(sub_graph, ans, watched, edgelist, prefered_objects, prefered_prop, top, dif_properties)
     else:
-        return recommendation(sub_graph, ans, watched, edgelist, prefered_objects, prefered_prop, top)
+        return recommendation(sub_graph, ans, watched, edgelist, prefered_objects, prefered_prop, top, full_prop_graph, user_id)
     
 
-def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_p):
+def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_p, dif_properties):
 
     # if user chose prop, get the prop, the obj and obj code and append it to the favorties properties
     # else remove all prop from graph
@@ -92,13 +92,13 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
             for m in movies_with_prop:
                 top_p = top_p.drop(m)
                 sub_graph = sub_graph.drop(m)
-
+                
     return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop
 
-def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m):
+def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m, full_prop_graph, user_id):
     
     if resp == "yes":
-        return { "recommendation": ull_prop_graph.loc[top_m.index[0]]['title'].unique()[0]}, False, watched, edgelist, prefered_objects, prefered_prop
+        return { "recommendation": full_prop_graph.loc[top_m.index[0]]['title'].unique()[0]}, False, watched, edgelist, prefered_objects, prefered_prop
     else:
         m_id = top_m.index[0]
         if resp == "watched":
@@ -109,9 +109,3 @@ def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefere
         sub_graph = sub_graph.drop(m_id)
     
     return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop
-
-def finish(sub_graph):
-    if len(sub_graph) == 0 or len(sub_graph.index.unique()) == 0:
-        # print("\nThere are no movies that corresponds to your preferences on our database "
-        #     "or you already watched them all")
-        end_conversation = True

@@ -26,6 +26,7 @@ edgelist = pd.concat([edgelist, ratings[['origin', 'destination']]])
 
 sub_graph = []
 top = []
+dif_properties = []
 
 watched = []
 prefered_objects = []
@@ -62,29 +63,15 @@ def second():
 @app.route("/third", methods = ['POST'])
 def third():
     data = request.json
-    global watched, prefered_objects, prefered_prop, user_id, sub_graph, top
+    global watched, prefered_objects, prefered_prop, user_id, sub_graph, top, dif_properties
     watched, prefered_objects, prefered_prop, user_id = main.third_interation(sub_graph, data['object'], p_chosen, ratings)
 
     global o_chosen
     o_chosen = data['object']
 
-    sub_graph, next_step, top = main.conversation(full_prop_graph, sub_graph, "", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, data['object'], edgelist)
+    sub_graph, next_step, top, dif_properties = main.conversation(full_prop_graph, sub_graph, "", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, data['object'], edgelist)
     
-    response, next_step, top = main.conversation(full_prop_graph, sub_graph, "no", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, data['object'], edgelist)
-    return response
-
-@app.route("/conversation", methods = ['POST'])
-def conversation():
-    data = request.json
-    resp = data['resp']
-    global watched, prefered_objects, prefered_prop, user_id, sub_graph, top
-
-    response, next_step, top = main.conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
-    if not next_step:
-        sub_graph = response
-        response, next_step, top = main.conversation(full_prop_graph, sub_graph, "no", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
-
-    # response, next_step, top = main.conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
+    response, next_step, top, dif_properties = main.conversation(full_prop_graph, sub_graph, "no", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, data['object'], edgelist)
     return response
 
 @app.route("/answer", methods = ['POST'])
@@ -93,28 +80,27 @@ def answer():
     resp = data['resp']
     ask = data['ask']
     global sub_graph
-    global watched, edgelist, prefered_objects, prefered_prop, top
+    global watched, edgelist, prefered_objects, prefered_prop, top, dif_properties
 
-    response, next_step, watched, edgelist, prefered_objects, prefered_prop = main.answer(sub_graph, ask, resp, watched, edgelist, prefered_objects, prefered_prop, top)
+    response, next_step, watched, edgelist, prefered_objects, prefered_prop = main.answer(sub_graph, ask, resp, watched, edgelist, prefered_objects, prefered_prop, top, dif_properties, full_prop_graph, user_id)
+    
     if next_step:
         sub_graph = response
-        response, next_step, top = main.conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
+        response, next_step, top, dif_properties = main.conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
         if not next_step:
             sub_graph = response
-            response, next_step, top = main.conversation(full_prop_graph, sub_graph, "no", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
+            response, next_step, top, dif_properties = main.conversation(full_prop_graph, sub_graph, "no", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
 
-    # print(next_step)
-    # print(response)
     return response
 
-@app.errorhandler(Exception)
-def handle_exception(e):
-    # pass through HTTP errors
-    if isinstance(e, HTTPException):
-        return e
+# @app.errorhandler(Exception)
+# def handle_exception(e):
+#     # pass through HTTP errors
+#     if isinstance(e, HTTPException):
+#         return e
 
-    # now you're handling non-HTTP exceptions only
-    return { "message" : "Internal Server Error!", "status": 500 }, 500
+#     # now you're handling non-HTTP exceptions only
+#     return { "message" : "Internal Server Error!", "status": 500 }, 500
 
 if __name__ == "__main__":
     # app.run()
