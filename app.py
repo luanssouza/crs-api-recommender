@@ -94,14 +94,14 @@ def answer():
 
     return response
 
-# @app.errorhandler(Exception)
-# def handle_exception(e):
-#     # pass through HTTP errors
-#     if isinstance(e, HTTPException):
-#         return e
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # pass through HTTP errors
+    if isinstance(e, HTTPException):
+        return e
 
-#     # now you're handling non-HTTP exceptions only
-#     return { "message" : "Internal Server Error!", "status": 500 }, 500
+    # now you're handling non-HTTP exceptions only
+    return { "message" : "Internal Server Error!", "status": 500 }, 500
 
 # region SWAGGER CONFIG
 SWAGGER_URL = '/swagger'
