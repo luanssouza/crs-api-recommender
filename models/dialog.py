@@ -36,43 +36,49 @@ class Dialog:
         super().__init__()
 
         # Identifiers
-        self._dialog_id = dialog_id
-        self._user_id = user_id
+        self.__dialog_id = dialog_id
+        self.__user_id = user_id
 
         # Graph properties
-        self._edgelist = edgelist
-        self._subgraph = subgraph
+        self.__edgelist = edgelist
+        self.__subgraph = subgraph
 
         # Dialog properties
-        self._top = []
-        self._watched = []
-        self._dif_properties = []
-        self._prefered_prop = []
-        self._prefered_objects = []
+        self.__top = []
+        self.__watched = []
+        self.__dif_properties = []
+        self.__prefered_prop = []
+        self.__prefered_objects = []
 
-        self._p_chosen = ""
-        self._o_chosen = ""
+        self.__p_chosen = ""
+        self.__o_chosen = ""
 
-        self._g_zscore = g_zscore
+        self.__g_zscore = g_zscore
 
     # region Getters and Setters
+    def __set_watched(self, watched: str = None):
+        self.__watched = watched
+
+    def __get_watched(self):
+        return self.__watched
+
     def __set_p_chosen(self, p_chosen: str = None):
-        self._p_chosen = p_chosen
+        self.__p_chosen = p_chosen
 
     def __get_p_chosen(self):
-        return self._p_chosen
+        return self.__p_chosen
     
     def __set_o_chosen(self, o_chosen: str = None):
-        self._o_chosen = o_chosen
+        self.__o_chosen = o_chosen
 
     def __get_o_chosen(self):
-        return self._o_chosen
+        return self.__o_chosen
 
     def __set_subgraph(self, subgraph: pd.DataFrame):
-        self._subgraph = subgraph
+        self.__subgraph = subgraph
 
     def __get_subgraph(self):
-        return self._subgraph
+        return self.__subgraph
 
     # endregion Getters and Setters
 
@@ -80,39 +86,41 @@ class Dialog:
       
     @property
     def watched(self):
-        return self._watched
+        return self.__watched
 
     @property
     def edgelist(self):
-        return self._edgelist
+        return self.__edgelist
 
     @property
     def prefered_objects(self):
-        return self._prefered_objects
+        return self.__prefered_objects
 
     @property
     def prefered_prop(self):
-        return self._prefered_prop
+        return self.__prefered_prop
 
     @property
     def top(self):
-        return self._top
+        return self.__top
 
     @property
     def dif_properties(self):
-        return self._dif_properties
+        return self.__dif_properties
 
     @property
     def full_prop_graph(self):
-        return self._full_prop_graph
+        return self.__full_prop_graph
         
     @property
     def user_id(self):
-        return self._user_id
+        return self.__user_id
 
     @property
-    def p_chosen(self):
-        return self._p_chosen
+    def g_zscore(self):
+        return self.__g_zscore
+
+    watched  = property(__get_watched, __set_watched)
 
     p_chosen = property(__get_p_chosen, __set_p_chosen)
 
@@ -133,8 +141,8 @@ class Dialog:
         prefered_objects : list 
             Prefered objects.
         """
-        self._prefered_prop = prefered_prop
-        self._prefered_objects = prefered_objects
+        self.__prefered_prop = prefered_prop
+        self.__prefered_objects = prefered_objects
 
     def dialog_infos(
         self,
@@ -156,11 +164,11 @@ class Dialog:
         prefered_objects : list 
             Prefered objects.
         """
-        self._watched = watched
-        self._edgelist = edgelist
+        self.__watched = watched
+        self.__edgelist = edgelist
         self.prefered_infos(prefered_prop, prefered_objects)
     
-    def dialog_infos(self, top: pd.DataFrame, dif_properties: list):
+    def dialog_properties_infos(self, top: pd.DataFrame, dif_properties: list):
         """
         Setting top of ordered movies and uniques properties.
         Parameters
@@ -170,7 +178,7 @@ class Dialog:
         dif_properties : list 
             List of uniques properties in the graph.
         """
-        self._top = top
-        self._dif_properties = dif_properties
+        self.__top = top
+        self.__dif_properties = dif_properties
     
     # endregion Class methods

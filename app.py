@@ -5,6 +5,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 import numpy as np
 import pandas as pd
 
+from models.dialog import Dialog
 import main
 import utils
 
@@ -24,23 +25,12 @@ ratings['origin'] = ['U' + x for x in ratings['user_id'].astype(str)]
 ratings['destination'] = ['M' + x for x in ratings['movie_id'].astype(str)]
 edgelist = pd.concat([edgelist, ratings[['origin', 'destination']]])
 
-
-sub_graph = []
-top = []
-dif_properties = []
-
-watched = []
-prefered_objects = []
-prefered_prop = []
-user_id = ''
-
-p_chosen = ""
-o_chosen = ""
-
 seed(42)
 
 # get the global zscore for the movies
 g_zscore = utils.generate_global_zscore(full_prop_graph, path="resources/global_properties.csv", flag=False)
+
+dialog = Dialog(1, 1, g_zscore, None, edgelist)
 
 @app.route("/", methods = ['GET'])
 def home():
@@ -48,31 +38,36 @@ def home():
 
 @app.route("/init", methods = ['GET'])
 def init():
-    global sub_graph
-    properties, sub_graph = main.init_conversation(full_prop_graph, ratings, g_zscore)  
+    properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore)
 
     return { "properties":  properties.tolist() }
 
 @app.route("/second", methods = ['POST'])
 def second():
     data = request.json
-    global p_chosen
-    p_chosen = data['property']
+    dialog.p_chosen = data['property']
 
-    return { "characteristics":  main.second_interation(sub_graph, data['property']).tolist() }
+    return { "characteristics":  main.second_interation(dialog.subgraph, dialog.p_chosen).tolist() }
 
 @app.route("/third", methods = ['POST'])
 def third():
     data = request.json
-    global watched, prefered_objects, prefered_prop, user_id, sub_graph, top, dif_properties
-    watched, prefered_objects, prefered_prop, user_id = main.third_interation(sub_graph, data['object'], p_chosen, ratings)
-
-    global o_chosen
-    o_chosen = data['object']
-
-    sub_graph, next_step, top, dif_properties = main.conversation(full_prop_graph, sub_graph, "", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, data['object'], edgelist)
+    dialog.o_chosen = data['object']
     
-    response, next_step, top, dif_properties = main.conversation(full_prop_graph, sub_graph, "no", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, data['object'], edgelist)
+    watched, prefered_objects, prefered_prop, user_id = main.third_interation(dialog.subgraph, dialog.o_chosen, dialog.p_chosen, ratings)
+
+    dialog.watched = watched
+    dialog.prefered_infos(prefered_prop, prefered_objects)
+
+    subgraph, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
+    
+    dialog.subgraph = subgraph
+    dialog.dialog_properties_infos(top, dif_properties)
+
+    response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
+
+    dialog.dialog_properties_infos(top, dif_properties)
+
     return response
 
 @app.route("/answer", methods = ['POST'])
@@ -80,17 +75,24 @@ def answer():
     data = request.json
     resp = data['resp']
     ask = data['ask']
-    global sub_graph
-    global watched, edgelist, prefered_objects, prefered_prop, top, dif_properties
 
-    response, next_step, watched, edgelist, prefered_objects, prefered_prop = main.answer(sub_graph, ask, resp, watched, edgelist, prefered_objects, prefered_prop, top, dif_properties, full_prop_graph, user_id)
+    response, next_step, watched, edgelist, prefered_objects, prefered_prop = main.answer(dialog.subgraph, ask, resp, dialog.watched, dialog.edgelist, dialog.prefered_objects, dialog.prefered_prop, dialog.top, dialog.dif_properties, full_prop_graph, dialog.user_id)
+
+    dialog.dialog_infos(watched, edgelist, prefered_prop, prefered_objects)
     
     if next_step:
-        sub_graph = response
-        response, next_step, top, dif_properties = main.conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
+        dialog.subgraph = response
+
+        response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, resp, dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
+
+        dialog.dialog_properties_infos(top, dif_properties)
+
         if not next_step:
-            sub_graph = response
-            response, next_step, top, dif_properties = main.conversation(full_prop_graph, sub_graph, "no", g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist)
+            dialog.subgraph = response
+
+            response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
+
+            dialog.dialog_properties_infos(top, dif_properties)
 
     return response
 
