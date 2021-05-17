@@ -8,23 +8,28 @@ class Dialog:
     ----------
     dialog_id : int
         Unique dialog id.
+
     user_id : int
         User identifier.
+
     g_zscore : dict
         Global zscore for the movies.
+
     subgraph : DataFrame
         DataFrame of dialog graph.
+
     edgelist : DataFrame
         DataFrame of graph edges.
+
     """
 
     def __init__(
         self, 
-        dialog_id: int | None = None, 
-        user_id: int | None = None,
-        g_zscore: dict | None = None,
-        subgraph: pd.DataFrame | None = None, 
-        edgelist: pd.DataFrame | None = None
+        dialog_id: int, 
+        user_id: int,
+        g_zscore: dict,
+        subgraph: pd.DataFrame, 
+        edgelist: pd.DataFrame
     ):
 
         # Calling superclass constructor
@@ -51,69 +56,74 @@ class Dialog:
         self._g_zscore = g_zscore
 
     # region Getters and Setters
-    def set_p_chosen(self, p_chosen: str = None):
-        """
-        Update property selected.
-        Parameters
-        ----------
-        p_chosen : str
-            Property choosen.
-        """
+    def __set_p_chosen(self, p_chosen: str = None):
         self._p_chosen = p_chosen
 
-    def get_p_chosen(self):
-        """
-        Gets object selected.
-        Returns
-        ----------
-        p_chosen : str
-            Object choosen.
-        """
+    def __get_p_chosen(self):
         return self._p_chosen
     
-    def set_o_chosen(self, o_chosen: str = None):
-        """
-        Update object selected.
-        Parameters
-        ----------
-        o_chosen : str
-            Object choosen.
-        """
+    def __set_o_chosen(self, o_chosen: str = None):
         self._o_chosen = o_chosen
 
-    def get_o_chosen(self):
-        """
-        Gets object selected.
-        Returns
-        ----------
-        o_chosen : str
-            Object choosen.
-        """
+    def __get_o_chosen(self):
         return self._o_chosen
 
-    def set_subgraph(self, subgraph: pd.DataFrame | None = None):
-        """
-        Update reduced graph.
-        Parameters
-        ----------
-        subgraph : DataFrame
-            DataFrame of reduced graph.
-        """
+    def __set_subgraph(self, subgraph: pd.DataFrame):
         self._subgraph = subgraph
 
-    def get_subgraph(self):
-        """
-        Gets reduced graph.
-        Returns
-        ----------
-        subgraph : DataFrame
-            Reduced Graph.
-        """
+    def __get_subgraph(self):
         return self._subgraph
 
     # endregion Getters and Setters
 
-    def prefered_infos(self, prefered_prop: list | None = None, prefered_objects: list | None = None):
+    # region Properties
+      
+    @property
+    def watched(self):
+        return self._watched
+
+    @property
+    def edgelist(self):
+        return self._edgelist
+
+    @property
+    def prefered_objects(self):
+        return self._prefered_objects
+
+    @property
+    def prefered_prop(self):
+        return self._prefered_prop
+
+    @property
+    def top(self):
+        return self._top
+
+    @property
+    def dif_properties(self):
+        return self._dif_properties
+
+    @property
+    def full_prop_graph(self):
+        return self._full_prop_graph
+        
+    @property
+    def user_id(self):
+        return self._user_id
+
+    @property
+    def p_chosen(self):
+        return self._p_chosen
+
+    p_chosen = property(__get_p_chosen, __set_p_chosen)
+
+    o_chosen = property(__get_o_chosen, __set_o_chosen)
+
+    subgraph = property(__get_subgraph, __set_subgraph)
+
+    # endregion Properties
+
+    # region Class methods
+    def prefered_infos(self, prefered_prop: list, prefered_objects: list):
         """
         Setting prefered properties and objects.
         Parameters
@@ -128,10 +138,10 @@ class Dialog:
 
     def dialog_infos(
         self,
-        watched: list | None = None,
-        edgelist: pd.DataFrame | None = None,
-        prefered_prop: list | None = None,
-        prefered_objects: list | None = None
+        watched: list,
+        edgelist: pd.DataFrame,
+        prefered_prop: list,
+        prefered_objects: list
     ):
         """
         Setting watched list, edgelist and prefered properties and objects.
@@ -150,7 +160,7 @@ class Dialog:
         self._edgelist = edgelist
         self.prefered_infos(prefered_prop, prefered_objects)
     
-    def dialog_infos(self, top: pd.DataFrame | None = None, dif_properties: list | None = None):
+    def dialog_infos(self, top: pd.DataFrame, dif_properties: list):
         """
         Setting top of ordered movies and uniques properties.
         Parameters
@@ -162,3 +172,5 @@ class Dialog:
         """
         self._top = top
         self._dif_properties = dif_properties
+    
+    # endregion Class methods
