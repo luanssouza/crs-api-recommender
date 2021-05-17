@@ -54,3 +54,17 @@ def generate_global_zscore(full_graph: pd.DataFrame, path: str, flag=False):
         full_split_dfs.to_csv(path, mode='w', header=True, index=False)
 
     return pd.read_csv(path, usecols=['prop', 'obj', 'count', 'global_zscore']).set_index(['prop', 'obj']).to_dict()
+
+def create_csvs(path):
+    ratings = pd.read_csv("resources/1851_movies_ratings.txt", sep='\t', header=None)
+    ratings.columns = ['user_id', 'movie_id', 'rating']
+    ratings['origin'] = ['U' + x for x in ratings['user_id'].astype(str)]
+    ratings['destination'] = ['M' + x for x in ratings['movie_id'].astype(str)]
+
+    ratings.to_csv('resources/ratings.csv', index=False)
+
+    edgelist = pd.DataFrame(columns=['origin', 'destination'])
+
+    edgelist = pd.concat([edgelist, ratings[['origin', 'destination']]])
+
+    edgelist.to_csv('resources/edgelist.csv', index=False)

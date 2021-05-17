@@ -1,14 +1,17 @@
 import numpy as np
 import pandas as pd
 from random import randint
+from uuid import uuid4
 
 import utils
 import graph
 
 def init_conversation(full_prop_graph, ratings, g_zscore):
     sub_graph = full_prop_graph.copy()
+    
+    dialog_id = uuid4()
 
-    return sub_graph['prop'].unique(), sub_graph
+    return sub_graph['prop'].unique(), sub_graph, dialog_id
 
 def second_interation(sub_graph, p_chosen):
     return utils.prop_most_pop(sub_graph, p_chosen)
@@ -16,12 +19,10 @@ def second_interation(sub_graph, p_chosen):
 def third_interation(sub_graph, o_chosen, p_chosen, ratings):
 
     # create vectors of movies and objects of preference and set seed and user id
-    watched = []
     prefered_objects = [sub_graph[(sub_graph['prop'] == p_chosen) & (sub_graph['obj'] == o_chosen)]['obj_code'].unique()[0]]
     prefered_prop = [(p_chosen, o_chosen)]
-    user_id = 'U' + str(ratings['user_id'].max() + 1)
 
-    return watched, prefered_objects, prefered_prop, user_id
+    return prefered_objects, prefered_prop
 
 def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist):
 
@@ -56,6 +57,7 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
                 return { "response": "You have already watched all the movies with the properties you liked :("}, True, [], []
 
             rec = full_prop_graph.loc[top_m.index[0]]['title'].unique()[0]
+            print(top_m.index[0])
             props = []
 
             for i in range(0, len(prefered_prop)):
@@ -97,10 +99,11 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
 
 def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m, full_prop_graph, user_id):
     
+    m_id = top_m.index[0]
+
     if resp == "yes":
-        return { "recommendation": full_prop_graph.loc[top_m.index[0]]['title'].unique()[0]}, False, watched, edgelist, prefered_objects, prefered_prop
+        return { "recommendation": full_prop_graph.loc[m_id]['title'].unique()[0], "movie_id": m_id }, False, watched, edgelist, prefered_objects, prefered_prop
     else:
-        m_id = top_m.index[0]
         if resp == "watched":
             watched.append(m_id)
             edgelist = edgelist.append({"origin": user_id, "destination": 'M' + str(m_id)}, ignore_index=True)

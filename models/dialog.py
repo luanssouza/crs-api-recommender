@@ -25,8 +25,8 @@ class Dialog:
 
     def __init__(
         self, 
-        dialog_id: int, 
-        user_id: int,
+        dialog_id: str, 
+        user_id: str,
         g_zscore: dict,
         subgraph: pd.DataFrame, 
         edgelist: pd.DataFrame
@@ -44,6 +44,7 @@ class Dialog:
         self.__subgraph = subgraph
 
         # Dialog properties
+        self.__ask = 0
         self.__top = []
         self.__watched = []
         self.__dif_properties = []
@@ -56,11 +57,29 @@ class Dialog:
         self.__g_zscore = g_zscore
 
     # region Getters and Setters
+    def __set_ask(self, ask: str = None):
+        self.__ask = ask
+
+    def __get_ask(self):
+        return self.__ask
+
     def __set_watched(self, watched: str = None):
         self.__watched = watched
 
     def __get_watched(self):
         return self.__watched
+
+    def __set_user_id(self, user_id: int = None):
+        self.__user_id = user_id
+
+    def __get_user_id(self):
+        return self.__user_id
+
+    def __set_dialog_id(self, dialog_id: int = None):
+        self.__dialog_id = dialog_id
+
+    def __get_dialog_id(self):
+        return self.__dialog_id
 
     def __set_p_chosen(self, p_chosen: str = None):
         self.__p_chosen = p_chosen
@@ -111,14 +130,16 @@ class Dialog:
     @property
     def full_prop_graph(self):
         return self.__full_prop_graph
-        
-    @property
-    def user_id(self):
-        return self.__user_id
 
     @property
     def g_zscore(self):
         return self.__g_zscore
+
+    ask = property(__get_ask, __set_ask)
+    
+    dialog_id = property(__get_dialog_id, __set_dialog_id)
+
+    user_id  = property(__get_user_id, __set_user_id)
 
     watched  = property(__get_watched, __set_watched)
 
@@ -138,6 +159,7 @@ class Dialog:
         ----------
         prefered_properties : list 
             Prefered properties.
+
         prefered_objects : list 
             Prefered objects.
         """
@@ -157,10 +179,13 @@ class Dialog:
         ----------
         watched : list
             List of watched movies.
+
         edgelist : DataFrame
             DataFrame of graph edges.
+
         prefered_properties : list 
             Prefered properties.
+
         prefered_objects : list 
             Prefered objects.
         """
@@ -175,8 +200,10 @@ class Dialog:
         ----------
         top : DataFrame
             DataFrame of top of the ordered movies.
+
         dif_properties : list 
             List of uniques properties in the graph.
+
         """
         self.__top = top
         self.__dif_properties = dif_properties

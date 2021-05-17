@@ -5,6 +5,8 @@ from flask_swagger_ui import get_swaggerui_blueprint
 import numpy as np
 import pandas as pd
 
+from joblib import dump, load
+
 from models.dialog import Dialog
 import main
 import utils
@@ -17,20 +19,17 @@ app = Flask(__name__)
 full_prop_graph = pd.read_csv("resources/wikidata_integration_small.csv")
 full_prop_graph = full_prop_graph.set_index('movie_id')
 
-ratings = pd.read_csv("resources/1851_movies_ratings.txt", sep='\t', header=None)
-ratings.columns = ['user_id', 'movie_id', 'rating']
+ratings = pd.read_csv("resources/ratings.csv")
 
-edgelist = pd.DataFrame(columns=['origin', 'destination'])
-ratings['origin'] = ['U' + x for x in ratings['user_id'].astype(str)]
-ratings['destination'] = ['M' + x for x in ratings['movie_id'].astype(str)]
-edgelist = pd.concat([edgelist, ratings[['origin', 'destination']]])
-
-seed(42)
+# import graph edge
+edgelist = pd.read_csv("resources/edgelist.csv")
 
 # get the global zscore for the movies
 g_zscore = utils.generate_global_zscore(full_prop_graph, path="resources/global_properties.csv", flag=False)
 
-dialog = Dialog(1, 1, g_zscore, None, edgelist)
+dialog_path = 'resources/dialogs'
+
+seed(42)
 
 @app.route("/", methods = ['GET'])
 def home():
@@ -38,25 +37,39 @@ def home():
 
 @app.route("/init", methods = ['GET'])
 def init():
-    properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore)
+    user_id = request.args.get('userId')
+    dialog = Dialog(None, user_id, g_zscore, None, edgelist)
 
-    return { "properties":  properties.tolist() }
+    properties, dialog.subgraph, dialog.dialog_id = main.init_conversation(full_prop_graph, ratings, g_zscore)
+
+    dump(dialog, dialogpath(dialog.dialog_id)) 
+
+    return { "properties":  properties.tolist(), "dialogId": dialog.dialog_id }
 
 @app.route("/second", methods = ['POST'])
 def second():
     data = request.json
+
+    dialog_id = data['dialogId']
+    dialog = load(dialogpath(dialog_id))
+
     dialog.p_chosen = data['property']
+
+    dump(dialog, dialogpath(dialog.dialog_id))
 
     return { "characteristics":  main.second_interation(dialog.subgraph, dialog.p_chosen).tolist() }
 
 @app.route("/third", methods = ['POST'])
 def third():
     data = request.json
+
+    dialog_id = data['dialogId']
+    dialog = load(dialogpath(dialog_id))
+
     dialog.o_chosen = data['object']
     
-    watched, prefered_objects, prefered_prop, user_id = main.third_interation(dialog.subgraph, dialog.o_chosen, dialog.p_chosen, ratings)
+    prefered_objects, prefered_prop = main.third_interation(dialog.subgraph, dialog.o_chosen, dialog.p_chosen, ratings)
 
-    dialog.watched = watched
     dialog.prefered_infos(prefered_prop, prefered_objects)
 
     subgraph, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
@@ -67,6 +80,9 @@ def third():
     response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
 
     dialog.dialog_properties_infos(top, dif_properties)
+    dialog.ask = response['ask']
+
+    dump(dialog, dialogpath(dialog.dialog_id))
 
     return response
 
@@ -74,9 +90,11 @@ def third():
 def answer():
     data = request.json
     resp = data['resp']
-    ask = data['ask']
 
-    response, next_step, watched, edgelist, prefered_objects, prefered_prop = main.answer(dialog.subgraph, ask, resp, dialog.watched, dialog.edgelist, dialog.prefered_objects, dialog.prefered_prop, dialog.top, dialog.dif_properties, full_prop_graph, dialog.user_id)
+    dialog_id = data['dialogId']
+    dialog = load(dialogpath(dialog_id))
+
+    response, next_step, watched, edgelist, prefered_objects, prefered_prop = main.answer(dialog.subgraph, dialog.ask, resp, dialog.watched, dialog.edgelist, dialog.prefered_objects, dialog.prefered_prop, dialog.top, dialog.dif_properties, full_prop_graph, dialog.user_id)
 
     dialog.dialog_infos(watched, edgelist, prefered_prop, prefered_objects)
     
@@ -94,8 +112,15 @@ def answer():
 
             dialog.dialog_properties_infos(top, dif_properties)
 
+    dialog.ask = response['ask']
+    dump(dialog, dialogpath(dialog.dialog_id))
+
     return response
 
+def dialogpath(dialog_id):
+    return '{0}/{1}.joblib'.format(dialog_path, dialog_id)
+
+# region ErrorHandlers
 @app.errorhandler(Exception)
 def handle_exception(e):
     # pass through HTTP errors
@@ -104,6 +129,7 @@ def handle_exception(e):
 
     # now you're handling non-HTTP exceptions only
     return { "message" : "Internal Server Error!", "status": 500 }, 500
+# endregion ErrorHandlers
 
 # region SWAGGER CONFIG
 SWAGGER_URL = '/swagger'
