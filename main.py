@@ -57,14 +57,15 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
                 return { "response": "You have already watched all the movies with the properties you liked :("}, True, [], []
 
             rec = full_prop_graph.loc[top_m.index[0]]['title'].unique()[0]
-            print(top_m.index[0])
+            m_id = str(top_m.index[0])
+            imdb_id = full_prop_graph.loc[top_m.index[0]]['imdbId'].unique()[0]
             props = []
 
             for i in range(0, len(prefered_prop)):
                 t = prefered_prop[i]
                 props.append({ "id": i+1, "property": str(t[0]), "object": str(t[1])})
 
-            return { "recommendation": rec, "properties": props, "ask": ask }, True, top_m, []
+            return { "recommendation": rec, "properties": props, "ask": ask, "movie_id": m_id, "imdbId": imdb_id }, True, top_m, []
 
     else:
         return graph.shrink_graph(sub_graph, p_chosen, o_chosen), False, [], []
@@ -100,9 +101,11 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
 def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m, full_prop_graph, user_id):
     
     m_id = top_m.index[0]
+    rec = full_prop_graph.loc[m_id]['title'].unique()[0]
+    imdb_id = full_prop_graph.loc[m_id]['imdbId'].unique()[0]
 
     if resp == "yes":
-        return { "recommendation": full_prop_graph.loc[m_id]['title'].unique()[0], "movie_id": m_id }, False, watched, edgelist, prefered_objects, prefered_prop
+        return { "recommendation": rec, "movie_id": str(m_id), "imdbId": imdb_id }, False, watched, edgelist, prefered_objects, prefered_prop
     else:
         if resp == "watched":
             watched.append(m_id)
