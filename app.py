@@ -103,6 +103,9 @@ def third():
 @app.route("/answer", methods = ['POST'])
 def answer():
     data = request.json
+
+    print("data: {0}".format(data))
+
     resp = data['resp']
 
     dialog_id = data['dialogId']
