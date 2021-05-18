@@ -12,6 +12,7 @@ import main
 import utils
 import bucket
 
+import logging
 from random import seed
 from pathlib import Path
 
@@ -138,6 +139,7 @@ def dialogpath(dialog_id):
 # region ErrorHandlers
 @app.errorhandler(Exception)
 def handle_exception(e):
+    logging.error(e)
     # pass through HTTP errors
     if isinstance(e, HTTPException):
         return e
