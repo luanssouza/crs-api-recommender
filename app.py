@@ -13,6 +13,7 @@ import utils
 import bucket
 
 from random import seed
+from pathlib import Path
 
 app = Flask(__name__)
 
@@ -29,6 +30,8 @@ edgelist = pd.read_csv("resources/edgelist.csv")
 g_zscore = utils.generate_global_zscore(full_prop_graph, path="resources/global_properties.csv", flag=False)
 
 dialog_path = 'resources/dialogs'
+
+Path(dialog_path).mkdir(parents=True, exist_ok=True)
 
 seed(42)
 
