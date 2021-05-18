@@ -1,17 +1,15 @@
 import numpy as np
 import pandas as pd
 from random import randint
-from uuid import uuid4
 
 import utils
 import graph
 
 def init_conversation(full_prop_graph, ratings, g_zscore):
     sub_graph = full_prop_graph.copy()
-    
-    dialog_id = uuid4()
 
-    return sub_graph['prop'].unique(), sub_graph, dialog_id
+
+    return sub_graph['prop'].unique(), sub_graph
 
 def second_interation(sub_graph, p_chosen):
     return utils.prop_most_pop(sub_graph, p_chosen)

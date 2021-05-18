@@ -40,12 +40,14 @@ seed(42)
 def home():
     return "Access the <a href='/swagger'>documentation</a> for more details."
 
-@app.route("/init", methods = ['GET'])
+@app.route("/init", methods = ['POST'])
 def init():
-    user_id = request.args.get('userId')
-    dialog = Dialog(None, user_id, g_zscore, None, edgelist)
+    data = request.json
+    dialog_id = data['dialogId']
 
-    properties, dialog.subgraph, dialog.dialog_id = main.init_conversation(full_prop_graph, ratings, g_zscore)
+    dialog = Dialog(dialog_id, "U7315", g_zscore, None, edgelist)
+
+    properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore)
 
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
