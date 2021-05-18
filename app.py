@@ -46,9 +46,8 @@ def init():
 
     properties, dialog.subgraph, dialog.dialog_id = main.init_conversation(full_prop_graph, ratings, g_zscore)
 
-    dump(dialog, dialogpath(dialog.dialog_id))
-
-    bucket.upload_object(dialogpath(dialog.dialog_id), "{0}.joblib".format(dialog.dialog_id))
+    # dump(dialog, dialogpath(dialog.dialog_id))
+    bucket.save_object(dialog.dialog_id, dialog)
 
     return { "properties":  properties.tolist(), "dialogId": dialog.dialog_id }
 
@@ -58,13 +57,13 @@ def second():
 
     dialog_id = data['dialogId']
 
-    bucket.download_object(dialogpath(dialog_id), "{0}.joblib".format(dialog_id))
-    dialog = load(dialogpath(dialog_id))
+    # dialog = load(dialogpath(dialog_id))
+    dialog = bucket.loads_object(dialog_id)
 
     dialog.p_chosen = data['property']
 
-    dump(dialog, dialogpath(dialog.dialog_id))
-    bucket.upload_object(dialogpath(dialog.dialog_id), "{0}.joblib".format(dialog.dialog_id))
+    # dump(dialog, dialogpath(dialog.dialog_id))
+    bucket.save_object(dialog.dialog_id, dialog)
 
     return { "characteristics":  main.second_interation(dialog.subgraph, dialog.p_chosen).tolist() }
 
@@ -74,8 +73,8 @@ def third():
 
     dialog_id = data['dialogId']
 
-    bucket.download_object(dialogpath(dialog_id), "{0}.joblib".format(dialog_id))
-    dialog = load(dialogpath(dialog_id))
+    # dialog = load(dialogpath(dialog_id))
+    dialog = bucket.loads_object(dialog_id)
 
     dialog.o_chosen = data['object']
     
@@ -93,8 +92,8 @@ def third():
     dialog.dialog_properties_infos(top, dif_properties)
     dialog.ask = response['ask']
 
-    dump(dialog, dialogpath(dialog.dialog_id))
-    bucket.upload_object(dialogpath(dialog.dialog_id), "{0}.joblib".format(dialog.dialog_id))
+    # dump(dialog, dialogpath(dialog.dialog_id))
+    bucket.save_object(dialog.dialog_id, dialog)
 
     return response
 
@@ -105,8 +104,8 @@ def answer():
 
     dialog_id = data['dialogId']
 
-    bucket.download_object(dialogpath(dialog_id), "{0}.joblib".format(dialog_id))
-    dialog = load(dialogpath(dialog_id))
+    # dialog = load(dialogpath(dialog_id))
+    dialog = bucket.loads_object(dialog_id)
 
     response, next_step, watched, edgelist, prefered_objects, prefered_prop = main.answer(dialog.subgraph, dialog.ask, resp, dialog.watched, dialog.edgelist, dialog.prefered_objects, dialog.prefered_prop, dialog.top, dialog.dif_properties, full_prop_graph, dialog.user_id)
 
@@ -128,8 +127,8 @@ def answer():
 
             dialog.dialog_properties_infos(top, dif_properties)
 
-    dump(dialog, dialogpath(dialog.dialog_id))
-    bucket.upload_object(dialogpath(dialog.dialog_id), "{0}.joblib".format(dialog.dialog_id))
+    # dump(dialog, dialogpath(dialog.dialog_id))
+    bucket.save_object(dialog.dialog_id, dialog)
 
     return response
 
