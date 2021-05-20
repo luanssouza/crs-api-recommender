@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 
-import utils
+from src import utils
 
 def order_movies_by_pop(sub_graph: pd.DataFrame, ratings: pd.DataFrame):
     """

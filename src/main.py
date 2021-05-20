@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 from random import randint
 
-import utils
-import graph
+from src import utils, graph
 
 def init_conversation(full_prop_graph, ratings, g_zscore):
     sub_graph = full_prop_graph.copy()

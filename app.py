@@ -7,10 +7,8 @@ import pandas as pd
 
 from joblib import dump, load
 
-from models.dialog import Dialog
-import main
-import utils
-import bucket
+from src.models.dialog import Dialog
+from src import main, utils, bucket
 
 import logging
 from random import seed
