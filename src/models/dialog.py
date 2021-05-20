@@ -1,5 +1,6 @@
 import pandas as pd
 
+from src.bandit.base_bandit import Bandit
 class Dialog:
     """
     Dialog structure.
@@ -21,6 +22,9 @@ class Dialog:
     edgelist : DataFrame
         DataFrame of graph edges.
 
+    bandit : Bandit
+        Bandit instance.
+
     """
 
     def __init__(
@@ -29,7 +33,8 @@ class Dialog:
         user_id: str,
         g_zscore: dict,
         subgraph: pd.DataFrame, 
-        edgelist: pd.DataFrame
+        edgelist: pd.DataFrame,
+        bandit: Bandit
     ):
 
         # Calling superclass constructor
@@ -55,6 +60,9 @@ class Dialog:
         self.__o_chosen = ""
 
         self.__g_zscore = g_zscore
+
+        # using Bandits
+        self.__bandit = bandit
 
     # region Getters and Setters
     def __set_ask(self, ask: str = None):
@@ -135,6 +143,10 @@ class Dialog:
     def g_zscore(self):
         return self.__g_zscore
 
+    @property
+    def bandit(self):
+        return self.__bandit
+
     ask = property(__get_ask, __set_ask)
     
     dialog_id = property(__get_dialog_id, __set_dialog_id)
@@ -171,7 +183,8 @@ class Dialog:
         watched: list,
         edgelist: pd.DataFrame,
         prefered_prop: list,
-        prefered_objects: list
+        prefered_objects: list,
+        reward: int
     ):
         """
         Setting watched list, edgelist and prefered properties and objects.
@@ -192,6 +205,7 @@ class Dialog:
         self.__watched = watched
         self.__edgelist = edgelist
         self.prefered_infos(prefered_prop, prefered_objects)
+        self.__bandit.update(0 if self.__ask else 1, reward)
     
     def dialog_properties_infos(self, top: pd.DataFrame, dif_properties: list):
         """
@@ -207,5 +221,5 @@ class Dialog:
         """
         self.__top = top
         self.__dif_properties = dif_properties
-    
+ 
     # endregion Class methods

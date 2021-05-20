@@ -63,7 +63,7 @@ def order_props(sub_graph: pd.DataFrame, global_zscore: dict, properties: list, 
 
     # remove the favorites to not show again
     for t in properties:
-        split_dfs = split_dfs[(split_dfs['prop'] != t[0]) & (split_dfs['obj'] != t[1])]
+        split_dfs = split_dfs[(split_dfs['obj'] != t[1])]
 
     return split_dfs.sort_values(by=['value'], ascending=False)
 

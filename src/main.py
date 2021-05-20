@@ -21,7 +21,7 @@ def third_interation(sub_graph, o_chosen, p_chosen, ratings):
 
     return prefered_objects, prefered_prop
 
-def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist):
+def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_objects, prefered_prop, user_id, p_chosen, o_chosen, edgelist, bandit):
 
     if len(sub_graph) == 0 or len(sub_graph.index.unique()) == 0:
         return { "response": "There are no movies that corresponds to your preferences on our database or you already watched them all"}, True, [], []
@@ -29,10 +29,10 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
     # or if sub graph is empty there are no entries or there are no movies, recommendation fails
     if resp == "no" or resp == "watched":
         # choose action and ask if user liked it
-        ask = randint(0, 10) % 2
+        ask = 0 if bandit.pull() else 1
 
-        # if ask == 0 suggest new property
-        if ask == 0:
+        # if ask suggest new property
+        if not ask and len(sub_graph.index.unique()) > 1:
             # show most relevant property
             top_p = graph.order_props(sub_graph, g_zscore, prefered_prop, [1/3, 1/3, 1/3])
 
@@ -76,6 +76,8 @@ def answer(sub_graph, ask, ans, watched, edgelist, prefered_objects, prefered_pr
 
 def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_p, dif_properties):
 
+    reward = 0
+
     # if user chose prop, get the prop, the obj and obj code and append it to the favorties properties
     # else remove all prop from graph
     if resp != "no":
@@ -84,16 +86,15 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
         o_chose_code = str(sub_graph[(sub_graph['prop'] == p_chosen) & (sub_graph['obj'] == o_chosen)]['obj_code'].unique()[0])
         prefered_objects.append(o_chose_code)
         prefered_prop.append((p_chosen, o_chosen))
+        if resp == 1:
+            reward = 1
     else:
         for index, row in dif_properties.iterrows():
             p = row[0]
             o = row[1]
-            movies_with_prop = sub_graph.loc[(sub_graph['prop'] == p) & (sub_graph['obj'] == o)].index
-            for m in movies_with_prop:
-                top_p = top_p.drop(m)
-                sub_graph = sub_graph.drop(m)
+            sub_graph = sub_graph.loc[(sub_graph['obj'] != o)]
                 
-    return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop
+    return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop, reward
 
 def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m, full_prop_graph, user_id):
     
@@ -101,14 +102,18 @@ def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefere
     rec = full_prop_graph.loc[m_id]['title'].unique()[0]
     imdb_id = full_prop_graph.loc[m_id]['imdbId'].unique()[0]
 
+    reward = 0
+
     if resp == "yes":
-        return { "recommendation": rec, "movie_id": str(m_id), "imdbId": imdb_id }, False, watched, edgelist, prefered_objects, prefered_prop
+        return { "recommendation": rec, "movie_id": str(m_id), "imdbId": imdb_id }, False, watched, edgelist, prefered_objects, prefered_prop, reward
     else:
         if resp == "watched":
+            reward = 1
             watched.append(m_id)
             edgelist = edgelist.append({"origin": user_id, "destination": 'M' + str(m_id)}, ignore_index=True)
 
         top_m = top_m.drop(m_id)
         sub_graph = sub_graph.drop(m_id)
     
-    return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop
+    # updated bandit based on the response of the user
+    return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop, reward

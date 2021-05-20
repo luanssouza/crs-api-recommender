@@ -7,6 +7,7 @@ import pandas as pd
 
 from joblib import dump, load
 
+from src.bandit import thompson_sampling as ts
 from src.models.dialog import Dialog
 from src import main, utils, bucket
 
@@ -32,7 +33,7 @@ dialog_path = 'resources/dialogs'
 
 Path(dialog_path).mkdir(parents=True, exist_ok=True)
 
-seed(42)
+np.random.RandomState(42)
 
 @app.route("/", methods = ['GET'])
 def home():
@@ -43,7 +44,10 @@ def init():
     data = request.json
     dialog_id = data['dialogId']
 
-    dialog = Dialog(dialog_id, "U7315", g_zscore, None, edgelist)
+    # create bandit to decide when to ask and recommend
+    ban = ts.ThompsonSamplingBandit(2)
+
+    dialog = Dialog(dialog_id, "U7315", g_zscore, None, edgelist, ban)
 
     properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore)
 
@@ -83,12 +87,12 @@ def third():
 
     dialog.prefered_infos(prefered_prop, prefered_objects)
 
-    subgraph, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
+    subgraph, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
     
     dialog.subgraph = subgraph
     dialog.dialog_properties_infos(top, dif_properties)
 
-    response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
+    response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
 
     dialog.dialog_properties_infos(top, dif_properties)
     dialog.ask = response['ask']
@@ -111,21 +115,21 @@ def answer():
     # dialog = load(dialogpath(dialog_id))
     dialog = bucket.loads_object(dialog_id)
 
-    response, next_step, watched, edgelist, prefered_objects, prefered_prop = main.answer(dialog.subgraph, dialog.ask, resp, dialog.watched, dialog.edgelist, dialog.prefered_objects, dialog.prefered_prop, dialog.top, dialog.dif_properties, full_prop_graph, dialog.user_id)
+    response, next_step, watched, edgelist, prefered_objects, prefered_prop, reward = main.answer(dialog.subgraph, dialog.ask, resp, dialog.watched, dialog.edgelist, dialog.prefered_objects, dialog.prefered_prop, dialog.top, dialog.dif_properties, full_prop_graph, dialog.user_id)
 
-    dialog.dialog_infos(watched, edgelist, prefered_prop, prefered_objects)
+    dialog.dialog_infos(watched, edgelist, prefered_prop, prefered_objects, reward)
     
     if next_step:
         dialog.subgraph = response
 
-        response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, resp, dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
+        response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, resp, dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
 
         dialog.dialog_properties_infos(top, dif_properties)
 
         if not next_step:
             dialog.subgraph = response
 
-            response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist)
+            response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
 
             dialog.ask = response['ask']
 
