@@ -29,6 +29,7 @@ edgelist = pd.read_csv("resources/edgelist.csv")
 # get the global zscore for the movies
 g_zscore = utils.generate_global_zscore(full_prop_graph, path="resources/global_properties.csv", flag=False)
 
+movie_rate = pd.read_csv("resources/rated_movies.csv", index_col="movie_id")
 dialog_path = 'resources/dialogs'
 
 Path(dialog_path).mkdir(parents=True, exist_ok=True)
@@ -44,12 +45,16 @@ def init():
     data = request.json
     dialog_id = data['dialogId']
 
+    age = data['age'] if "age" in data else 18
+    age_auth = data['ageAuth'] if "ageAuth" in data else 0
+
+
     # create bandit to decide when to ask and recommend
     ban = ts.ThompsonSamplingBandit(2)
 
     dialog = Dialog(dialog_id, "U7315", g_zscore, None, edgelist, ban)
 
-    properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore)
+    properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore, movie_rate, age, age_auth)
 
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)

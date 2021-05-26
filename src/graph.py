@@ -143,3 +143,35 @@ def order_movies_by_pagerank(sub_graph: pd.DataFrame, edgelist: pd.DataFrame,  w
         ordered_movies.at[m] = pr_np[movie_code]
 
     return ordered_movies.sort_values(by=['value'], ascending=False)
+
+def remove_films_by_age(age: int, aws: int, rate_set: pd.DataFrame, graph: pd.DataFrame):
+    appropriate_graph = graph.copy()
+    remove_labels = []
+    if age > 17:
+        return appropriate_graph
+
+    remove_labels.append('Unrated')
+    remove_labels.append('Not Rated')
+    remove_labels.append('NC-17')
+    remove_labels.append('TV-MA')
+    if age > 13 and aws == 0:
+        remove_labels.append('R')
+
+    if age < 13:
+        remove_labels.append('R')
+        remove_labels.append('TV-14')
+
+        if aws == 0:
+            remove_labels.append('PG-13')
+            remove_labels.append('TV-PG')
+
+    remove_movies = rate_set[rate_set['rated'].isna()].index.to_list()
+    rate_set = rate_set.drop(remove_movies)
+    for label in remove_labels:
+        movies_with_label = rate_set[rate_set['rated'] == label].index.to_list()
+        remove_movies = remove_movies + movies_with_label
+        rate_set = rate_set.drop(movies_with_label)
+
+    appropriate_graph = appropriate_graph.drop(remove_movies)
+
+    return appropriate_graph

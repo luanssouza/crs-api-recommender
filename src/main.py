@@ -4,10 +4,10 @@ from random import randint
 
 from src import utils, graph
 
-def init_conversation(full_prop_graph, ratings, g_zscore):
+def init_conversation(full_prop_graph, ratings, g_zscore, movie_rate, age, age_auth):
     sub_graph = full_prop_graph.copy()
 
-
+    sub_graph = graph.remove_films_by_age(age, age_auth, movie_rate, sub_graph)
     return sub_graph['prop'].unique(), sub_graph
 
 def second_interation(sub_graph, p_chosen):
