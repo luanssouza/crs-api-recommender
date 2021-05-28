@@ -1,13 +1,17 @@
 from flask_swagger_ui import get_swaggerui_blueprint
 
-SWAGGER_URL = '/swagger'
+from __main__ import app
 
-API_URL = '/static/swagger.json'
+swagger_url = '/swagger'
+
+api_url = '/static/swagger.json'
 
 swagger_blueprint = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
+    swagger_url,
+    api_url,
     config={
         'app_name': "CRS-API-recommender"
     }
 )
+
+app.register_blueprint(swagger_blueprint)

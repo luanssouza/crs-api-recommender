@@ -1,4 +1,4 @@
-from werkzeug.exceptions import HTTPException
+
 from flask import Flask, request
 
 import numpy as np
@@ -9,13 +9,14 @@ from joblib import dump, load
 from src.bandit import thompson_sampling as ts
 from src.models.dialog import Dialog
 from src import main, utils, bucket
-from src.swagger import swagger_blueprint
 
-import logging
 from random import seed
 from pathlib import Path
 
 app = Flask(__name__)
+
+import src.errorHandlers
+import src.swagger
 
 # import database and import of the ratings
 full_prop_graph = pd.read_csv("resources/wikidata_integration_small.csv")
@@ -147,20 +148,6 @@ def answer():
 
 def dialogpath(dialog_id):
     return '{0}/{1}.joblib'.format(dialog_path, dialog_id)
-
-# region ErrorHandlers
-@app.errorhandler(Exception)
-def handle_exception(e):
-    logging.error(e)
-    # pass through HTTP errors
-    if isinstance(e, HTTPException):
-        return e
-
-    # now you're handling non-HTTP exceptions only
-    return { "message" : "Internal Server Error!", "status": 500 }, 500
-# endregion ErrorHandlers
-
-app.register_blueprint(swagger_blueprint)
 
 if __name__ == "__main__":
     app.run()
