@@ -1,6 +1,5 @@
 from werkzeug.exceptions import HTTPException
 from flask import Flask, request
-from flask_swagger_ui import get_swaggerui_blueprint
 
 import numpy as np
 import pandas as pd
@@ -10,6 +9,7 @@ from joblib import dump, load
 from src.bandit import thompson_sampling as ts
 from src.models.dialog import Dialog
 from src import main, utils, bucket
+from src.swagger import swagger_blueprint
 
 import logging
 from random import seed
@@ -160,19 +160,7 @@ def handle_exception(e):
     return { "message" : "Internal Server Error!", "status": 500 }, 500
 # endregion ErrorHandlers
 
-# region SWAGGER CONFIG
-SWAGGER_URL = '/swagger'
-API_URL = '/static/swagger.json'
-SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={
-        'app_name': "CRS-API-recommender"
-    }
-)
-app.register_blueprint(SWAGGERUI_BLUEPRINT)
-# endregion
+app.register_blueprint(swagger_blueprint)
 
 if __name__ == "__main__":
-    # app.run()
-    app.run(debug=True)
+    app.run()
