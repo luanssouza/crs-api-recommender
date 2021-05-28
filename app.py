@@ -6,7 +6,7 @@ import pandas as pd
 
 from joblib import dump, load
 
-from src.bandit import thompson_sampling as ts
+from src.bandit.bandit_factory import bandit_factory
 from src.models.dialog import Dialog
 from src import main, utils, bucket
 
@@ -51,7 +51,7 @@ def init():
 
 
     # create bandit to decide when to ask and recommend
-    ban = ts.ThompsonSamplingBandit(2)
+    ban = bandit_factory()
 
     dialog = Dialog(dialog_id, "U7315", g_zscore, None, edgelist, ban)
 
