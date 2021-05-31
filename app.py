@@ -15,8 +15,11 @@ from pathlib import Path
 
 app = Flask(__name__)
 
-import src.errorHandlers
-import src.swagger
+from src.errorHandlers import error_blueprint
+from src.swagger import swagger_blueprint
+
+app.register_blueprint(swagger_blueprint)
+app.register_blueprint(error_blueprint)
 
 # import database and import of the ratings
 full_prop_graph = pd.read_csv("resources/wikidata_integration_small.csv")

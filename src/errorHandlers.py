@@ -1,9 +1,10 @@
 from werkzeug.exceptions import HTTPException
+from flask import Blueprint
 import logging
 
-from __main__ import app
+error_blueprint = Blueprint('error_handlers', __name__)
 
-@app.errorhandler(Exception)
+@error_blueprint.app_errorhandler(Exception)
 def handle_exception(e):
     logging.error(e)
     # pass through HTTP errors
