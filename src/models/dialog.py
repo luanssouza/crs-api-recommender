@@ -167,6 +167,7 @@ class Dialog:
     def prefered_infos(self, prefered_prop: list, prefered_objects: list):
         """
         Setting prefered properties and objects.
+
         Parameters
         ----------
         prefered_properties : list 
@@ -188,6 +189,7 @@ class Dialog:
     ):
         """
         Setting watched list, edgelist and prefered properties and objects.
+
         Parameters
         ----------
         watched : list
@@ -210,6 +212,7 @@ class Dialog:
     def dialog_properties_infos(self, top: pd.DataFrame, dif_properties: list):
         """
         Setting top of ordered movies and uniques properties.
+        
         Parameters
         ----------
         top : DataFrame
