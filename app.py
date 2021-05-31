@@ -44,6 +44,9 @@ def home():
 @app.route("/init", methods = ['POST'])
 def init():
     data = request.json
+
+    print("data: {0}".format(data))
+    
     dialog_id = data['dialogId']
 
     age = data['age'] if "age" in data else 18
@@ -66,6 +69,8 @@ def init():
 def second():
     data = request.json
 
+    print("data: {0}".format(data))
+
     dialog_id = data['dialogId']
 
     # dialog = load(dialogpath(dialog_id))
@@ -81,6 +86,8 @@ def second():
 @app.route("/third", methods = ['POST'])
 def third():
     data = request.json
+
+    print("data: {0}".format(data))
 
     dialog_id = data['dialogId']
 
