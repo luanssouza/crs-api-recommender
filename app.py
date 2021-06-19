@@ -52,7 +52,7 @@ def init():
     
     dialog_id = data['dialogId']
 
-    age = data['age'] if "age" in data else 18
+    age = int(data['age']) if "age" in data else 18
     age_auth = data['ageAuth'] if "ageAuth" in data else 0
 
 
