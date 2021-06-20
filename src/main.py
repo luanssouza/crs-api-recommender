@@ -81,6 +81,8 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
     # if user chose prop, get the prop, the obj and obj code and append it to the favorties properties
     # else remove all prop from graph
     if resp != "no":
+        if isinstance(resp, str) and len(resp) > 1:
+            resp  = resp[:1]
         p_chosen = str(dif_properties.iloc[int(resp) - 1]['prop'])
         o_chosen = str(dif_properties.iloc[int(resp) - 1]['obj'])
         o_chose_code = str(sub_graph[(sub_graph['prop'] == p_chosen) & (sub_graph['obj'] == o_chosen)]['obj_code'].unique()[0])
