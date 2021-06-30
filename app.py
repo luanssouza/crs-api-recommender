@@ -66,7 +66,7 @@ def init():
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
 
-    return { "properties":  properties.tolist(), "dialogId": dialog.dialog_id }
+    return { "properties":  properties, "dialogId": dialog.dialog_id }
 
 @app.route("/second", methods = ['POST'])
 def second():

@@ -7,9 +7,9 @@ def prop_most_pop(sub_graph: pd.DataFrame, prop: str):
     Function that returns the most popular values for property prop
     :param sub_graph: sub graph that represents the current graph that matches the users preferences
     :param prop: property the user is looking for
-    :return: list of the ten most popular values of property
+    :return: ordered list of most popular values of property
     """
-    return sub_graph[(sub_graph['prop'] == prop)]['obj'].value_counts().index.values[:10]
+    return sub_graph[(sub_graph['prop'] == prop)]['obj'].value_counts().index.values #[:10]
 
 
 def calculate_entropy(sub_graph: pd.DataFrame):
@@ -30,6 +30,25 @@ def calculate_entropy(sub_graph: pd.DataFrame):
         entropies[prop] = entropy(prob, base=2)
 
     return entropies
+
+def show_props(graph: pd.DataFrame, percentage: float):
+    """
+    Function that returns the properties that appear in a bigger percentage that that one passed as a parameter to the
+    function
+    :param graph: wikidata graph
+    :param percentage: threshold of movies with prop to show to the user
+    :return: list of properties that have higher threshold
+    """
+    props_t_show = []
+    total_movies = len(graph.index.unique())
+    for p in graph['prop'].unique():
+        movies_prop = len(graph[(graph['prop'] == p)].index.unique())
+
+        rel = movies_prop/total_movies
+        if rel >= percentage:
+            props_t_show.append(p)
+
+    return props_t_show
 
 
 def generate_global_zscore(full_graph: pd.DataFrame, path: str, flag=False):

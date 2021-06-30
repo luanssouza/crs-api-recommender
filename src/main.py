@@ -8,7 +8,8 @@ def init_conversation(full_prop_graph, ratings, g_zscore, movie_rate, age, age_a
     sub_graph = full_prop_graph.copy()
 
     sub_graph = graph.remove_films_by_age(age, age_auth, movie_rate, sub_graph)
-    return sub_graph['prop'].unique(), sub_graph
+    # sub_graph['prop'].unique()
+    return utils.show_props(sub_graph, 0.33), sub_graph
 
 def second_interation(sub_graph, p_chosen):
     return utils.prop_most_pop(sub_graph, p_chosen)
@@ -36,7 +37,7 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
             # show most relevant property
             top_p = graph.order_props(sub_graph, g_zscore, prefered_prop, [1/3, 1/3, 1/3])
 
-            dif_properties = top_p.drop_duplicates()[:5]
+            dif_properties = top_p.drop_duplicates()#[:5]
             attributes = []
             for i in range(0, len(dif_properties)):
                 p_topn = str(dif_properties.iloc[i]['prop'])
@@ -82,7 +83,8 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
     # else remove all prop from graph
     if resp != "no":
         if isinstance(resp, str) and len(resp) > 1:
-            resp  = resp[:1]
+            #resp  = resp[:1]
+            resp = resp.split(")")[0]
         p_chosen = str(dif_properties.iloc[int(resp) - 1]['prop'])
         o_chosen = str(dif_properties.iloc[int(resp) - 1]['obj'])
         o_chose_code = str(sub_graph[(sub_graph['prop'] == p_chosen) & (sub_graph['obj'] == o_chosen)]['obj_code'].unique()[0])
@@ -90,11 +92,11 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
         prefered_prop.append((p_chosen, o_chosen))
         if resp == 1:
             reward = 1
-    else:
-        for index, row in dif_properties.iterrows():
-            p = row[0]
-            o = row[1]
-            sub_graph = sub_graph.loc[(sub_graph['obj'] != o)]
+    # else:
+    #     for index, row in dif_properties.iterrows():
+    #         p = row[0]
+    #         o = row[1]
+    #         sub_graph = sub_graph.loc[(sub_graph['obj'] != o)]
                 
     return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop, reward
 
