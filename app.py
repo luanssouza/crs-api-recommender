@@ -151,6 +151,8 @@ def answer():
             dialog.ask = response['ask']
 
             dialog.dialog_properties_infos(top, dif_properties)
+        else:
+            dialog.ask = response['ask']
 
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
