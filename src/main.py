@@ -70,6 +70,24 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
     else:
         return graph.shrink_graph(sub_graph, p_chosen, o_chosen), False, [], []
 
+def recommend(full_prop_graph, sub_graph, watched, prefered_objects, prefered_prop, edgelist):
+    top_m = graph.order_movies_by_pagerank(sub_graph, edgelist, watched, prefered_objects, [0.8, 0.2], True)
+
+    # case if all movies with properties were recommended but no movies were accepted by user
+    if len(top_m.index) == 0:
+        return { "response": "You have already watched all the movies with the properties you liked :("}, True, [], []
+
+    rec = full_prop_graph.loc[top_m.index[0]]['title'].unique()[0]
+    m_id = str(top_m.index[0])
+    imdb_id = full_prop_graph.loc[top_m.index[0]]['imdbId'].unique()[0]
+    props = []
+
+    for i in range(0, len(prefered_prop)):
+        t = prefered_prop[i]
+        props.append({ "id": i+1, "property": str(t[0]), "object": str(t[1])})
+
+    return { "recommendation": rec, "properties": props, "ask": 1, "movie_id": m_id, "imdbId": imdb_id }, top_m, []
+
 def answer(sub_graph, ask, ans, watched, edgelist, prefered_objects, prefered_prop, top, dif_properties, full_prop_graph, user_id):
     if ask == 0:
         return properties(sub_graph, ans, watched, edgelist, prefered_objects, prefered_prop, top, dif_properties)

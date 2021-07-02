@@ -157,6 +157,25 @@ def answer():
 
     return response
 
+@app.route("/recommend", methods = ['POST'])
+def recommend():
+    data = request.json
+
+    print("data: {0}".format(data))
+
+    dialog_id = data['dialogId']
+
+    dialog = bucket.loads_object(dialog_id)
+
+    response, top, dif_properties = main.recommend(full_prop_graph, dialog.subgraph, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.edgelist)
+
+    dialog.dialog_properties_infos(top, dif_properties)
+    dialog.ask = response['ask']
+
+    bucket.save_object(dialog.dialog_id, dialog)
+
+    return response
+
 def dialogpath(dialog_id):
     return '{0}/{1}.joblib'.format(dialog_path, dialog_id)
 
