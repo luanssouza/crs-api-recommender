@@ -17,7 +17,35 @@ def order_movies_by_pop(sub_graph: pd.DataFrame, ratings: pd.DataFrame):
 
     return ordered_movies.sort_values(by=['value'], ascending=False)
 
-def order_props(sub_graph: pd.DataFrame, global_zscore: dict, properties: list, weight_vec: list):
+def order_props_pr(sub_graph: pd.DataFrame, global_zscore: pd.DataFrame, edgelist: pd.DataFrame, watched: list,
+                   objects: list, objects_names: list, weight_vec_pr: list, weight_vec_rank: list, use_objs=False):
+
+    pr = page_rank(sub_graph, edgelist, watched, objects, weight_vec_pr, use_objs)
+    sub_slice = sub_graph[['prop', 'obj', 'obj_code']]
+
+    rank = sub_slice.copy()
+    rank['local_pr'] = rank.apply(lambda x: pr[x['obj_code']], axis=1)
+    rank['local_zscore'] = (rank['local_pr'] - rank['local_pr'].mean()) / rank['local_pr'].std()
+
+    # calculate entropy and create entropy column
+    entrs =  utils.calculate_entropy(sub_graph)
+    rank['h'] = rank.apply(lambda x: entrs[x['prop']], axis=1)
+    rank['h_zscore'] = (rank['h'] - rank['h'].mean()) / rank['h'].std()
+
+    rank['global_zscore'] = rank.apply(lambda x: global_zscore['pr_zscore'][(x['prop'], x['obj'])],
+                                                 axis=1)
+
+    # sum the zscores for the total value
+    rank['value'] = (weight_vec_rank[0] * rank['h_zscore']) + \
+                         (weight_vec_rank[1] * rank['local_zscore']) + \
+                         (weight_vec_rank[2] * rank['global_zscore'])
+
+    for p in objects_names:
+        rank = rank[(rank['obj'] != p[1])]
+
+    return rank.sort_values(by=['value'], ascending=False)
+
+def order_props_relevance(sub_graph: pd.DataFrame, global_zscore: dict, properties: list, weight_vec: list):
     """
     Function that order the properties based on the entropy of the property, the relevance of the value locally
     normalized measured by the zscore of the count of the property on the sub graph and the relevance of the value
@@ -67,7 +95,6 @@ def order_props(sub_graph: pd.DataFrame, global_zscore: dict, properties: list, 
 
     return split_dfs.sort_values(by=['value'], ascending=False)
 
-
 def shrink_graph(sub_graph: pd.DataFrame, prop: str, obj: str):
     """
     Function that shrinks the graph to a sub graph based on the property and value passed on the parameters.
@@ -84,25 +111,10 @@ def shrink_graph(sub_graph: pd.DataFrame, prop: str, obj: str):
     return shrinked.sort_index()
 
 
-def order_movies_by_pagerank(sub_graph: pd.DataFrame, edgelist: pd.DataFrame,  watched: list, objects: list,
-                             weight_vec: list, use_objs=False):
-    """
-    Function that order the movies based on its' pagerank on the graph. The adj matrix is created on the
-    WikidataIntegration project, in the adjacency_matrix.py
-    :param sub_graph: sub graph that represents the current graph that matches the users preferences
-    :param edgelist: edge list of users and movies from the dataset. The dataframe has two columns, the origin of the
-        edge and the destination
-    :param watched: movies that the user watched
-    :param objects: objects (e.g. Martin Scorsese, Leonardo Di Caprio, Bred Pitt, Disney, etc) on the graph that
-        the user liked
-    :param weight_vec: list with size two and sum equal to one with the weights of the personalization to the watched
-    movies and the rest of the nodes
-    :param use_objs: boolean value to use on the pagerank or not the objects list that the user liked
-    :return: ordered movies on a DataFrame
-    """
-
+def page_rank(graph: pd.DataFrame, edgelist: pd.DataFrame, watched: list, objects: list, weight_vec: list,
+              use_objs=False):
     # append edgelist that only hast movies and user edges and add the movies to values on the wikidata edges
-    copy = sub_graph.copy()
+    copy = graph.copy()
     copy['origin'] = ['M' + x for x in copy.index.astype(str)]
     copy['destination'] = copy['obj_code']
     full_edgelist = pd.concat([edgelist, copy[['origin', 'destination']]])
@@ -135,16 +147,43 @@ def order_movies_by_pagerank(sub_graph: pd.DataFrame, edgelist: pd.DataFrame,  w
 
     # calculate pagerank
     pr_np = nx.pagerank_scipy(G, personalization=personalization, max_iter=1000)
+    return pr_np
+
+def order_movies_by_pagerank(sub_graph: pd.DataFrame, edgelist: pd.DataFrame, watched: list, objects: list,
+                             weight_vec: list, use_objs=False):
+    """
+    Function that order the movies based on its' pagerank on the graph. The adj matrix is created on the
+    WikidataIntegration project, in the adjacency_matrix.py
+    :param sub_graph: sub graph that represents the current graph that matches the users preferences
+    :param edgelist: edge list of users and movies from the dataset. The dataframe has two columns, the origin of the
+        edge and the destination
+    :param watched: movies that the user watched
+    :param objects: objects (e.g. Martin Scorsese, Leonardo Di Caprio, Bred Pitt, Disney, etc) on the graph that
+        the user liked
+    :param weight_vec: list with size two and sum equal to one with the weights of the personalization to the watched
+    movies and the rest of the nodes
+    :param use_objs: boolean value to use on the pagerank or not the objects list that the user liked
+    :return: ordered movies on a DataFrame
+    """
+
+    pr = page_rank(sub_graph, edgelist, watched, objects, weight_vec, use_objs)
 
     # order movies
     ordered_movies = pd.DataFrame(index=sub_graph.index.unique(), columns=['value'])
     for m in sub_graph.index.unique():
         movie_code = 'M' + str(m)
-        ordered_movies.at[m] = pr_np[movie_code]
+        ordered_movies.at[m] = pr[movie_code]
 
     return ordered_movies.sort_values(by=['value'], ascending=False)
 
 def remove_films_by_age(age: int, aws: int, rate_set: pd.DataFrame, graph: pd.DataFrame):
+    """
+    Function that removes the films by age of the dataset
+    :param age: age of the user
+    :param rate_set: rating dataset of the movies
+    :param graph: graph with all movies
+    :return: graph with only appropriate movies
+    """
     appropriate_graph = graph.copy()
     remove_labels = []
     if age > 17:

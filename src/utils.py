@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import networkx as nx
 from scipy.stats import entropy
 
 def prop_most_pop(sub_graph: pd.DataFrame, prop: str):
@@ -51,7 +52,7 @@ def show_props(graph: pd.DataFrame, percentage: float):
     return props_t_show
 
 
-def generate_global_zscore(full_graph: pd.DataFrame, path: str, flag=False):
+def generate_global_zscore(full_graph: pd.DataFrame, edgelist: pd.DataFrame, path: str, flag=False):
     """
     Function that generates a dictionary with all the zscore of movies. If flag is true, generate file,
     else only reads the file
@@ -62,17 +63,30 @@ def generate_global_zscore(full_graph: pd.DataFrame, path: str, flag=False):
     """
     if flag:
         full_slice = full_graph[['prop', 'obj']]
-        full_split_dfs = pd.DataFrame(columns=['prop', 'obj', 'count', 'global_zscore'])
+        full_split_dfs = pd.DataFrame()
+
+        copy = full_graph.copy()
+        copy['origin'] = ['M' + x for x in copy.index.astype(str)]
+        copy['destination'] = copy['obj']
+        full_edgelist = pd.concat([edgelist, copy[['origin', 'destination']]])
+
+        # create graph
+        G = nx.from_pandas_edgelist(full_edgelist, 'origin', 'destination')
+        pr_np = nx.pagerank_scipy(G, max_iter=1000)
+
         for prop in full_slice['prop'].unique():
             df_prop = full_slice[full_slice['prop'] == prop]
             df_gzscore = df_prop.copy()
-            df_gzscore['count'] = df_prop.groupby('obj').transform('count')
+            df_gzscore['count'] = df_prop.groupby(by='obj')['obj'].transform('count')
             df_gzscore['global_zscore'] = (df_gzscore['count'] - df_gzscore['count'].mean()) / df_gzscore['count'].std()
             full_split_dfs = pd.concat([full_split_dfs, df_gzscore])
 
+        full_split_dfs['pr'] = full_split_dfs.apply(lambda x: pr_np[x['obj']], axis=1)
+        full_split_dfs['pr_zscore'] = (full_split_dfs['pr'] - full_split_dfs['pr'].mean()) / full_split_dfs['pr'].std()
+
         full_split_dfs.to_csv(path, mode='w', header=True, index=False)
 
-    return pd.read_csv(path, usecols=['prop', 'obj', 'count', 'global_zscore']).set_index(['prop', 'obj']).to_dict()
+    return pd.read_csv(path, usecols=['prop', 'obj', 'count', 'global_zscore', 'pr', 'pr_zscore']).set_index(['prop', 'obj']).to_dict()
 
 def create_csvs(path):
     ratings = pd.read_csv("resources/1851_movies_ratings.txt", sep='\t', header=None)

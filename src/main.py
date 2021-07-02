@@ -35,7 +35,9 @@ def conversation(full_prop_graph, sub_graph, resp, g_zscore, watched, prefered_o
         # if ask suggest new property
         if not ask and len(sub_graph.index.unique()) > 1:
             # show most relevant property
-            top_p = graph.order_props(sub_graph, g_zscore, prefered_prop, [1/3, 1/3, 1/3])
+            # top_p = graph.order_props_relevance(sub_graph, g_zscore, prefered_prop, [1/3, 1/3, 1/3])
+            top_p = graph.order_props_pr(sub_graph, g_zscore, edgelist, watched, prefered_objects, prefered_prop,
+                                         [0.8, 0.2], [1/3, 1/3, 1/3], True)
 
             dif_properties = top_p.drop_duplicates()#[:5]
             attributes = []
