@@ -32,7 +32,7 @@ edgelist = pd.read_csv("resources/edgelist.csv")
 
 # get the global zscore for the movies
 # g_zscore = utils.generate_global_zscore(full_prop_graph, path="resources/global_properties.csv", flag=False)
-g_zscore = utils.generate_global_zscore(full_prop_graph, edgelist, path="./global_properties.csv", flag=True)
+g_zscore = utils.generate_global_zscore(full_prop_graph, edgelist, path="resources/global_properties.csv", flag=True)
 
 movie_rate = pd.read_csv("resources/rated_movies.csv", index_col="movie_id")
 dialog_path = 'resources/dialogs'
