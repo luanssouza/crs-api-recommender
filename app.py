@@ -13,6 +13,8 @@ from src import main, utils, bucket
 from random import seed
 from pathlib import Path
 
+import os
+
 app = Flask(__name__)
 
 from src.errorHandlers import error_blueprint
