@@ -182,4 +182,4 @@ def dialogpath(dialog_id):
     return '{0}/{1}.joblib'.format(dialog_path, dialog_id)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', '5000'))
