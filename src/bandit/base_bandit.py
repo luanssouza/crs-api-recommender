@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class Bandit():
@@ -44,11 +43,3 @@ class Bandit():
             print("\t Average arm reward " + str(self.narms_rmean[a]))
 
         print("Final system reward = " + str(self.reward[-1]))
-
-        plt.figure(figsize=(14, 8))
-        plt.title("Rewards")
-        plt.plot(self.reward, label="Rewards")
-        plt.legend(bbox_to_anchor=(1.2, 0.5))
-        plt.xlabel("Iterations")
-        plt.ylabel("Average Reward")
-        plt.show()
