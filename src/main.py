@@ -112,6 +112,8 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
         prefered_prop.append((p_chosen, o_chosen))
         if resp == 1:
             reward = 1
+    
+        sub_graph = graph.shrink_graph(sub_graph, p_chosen, o_chosen)
     # else:
     #     for index, row in dif_properties.iterrows():
     #         p = row[0]

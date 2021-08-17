@@ -137,7 +137,7 @@ def answer():
     response, next_step, watched, edgelist, prefered_objects, prefered_prop, reward = main.answer(dialog.subgraph, dialog.ask, resp, dialog.watched, dialog.edgelist, dialog.prefered_objects, dialog.prefered_prop, dialog.top, dialog.dif_properties, full_prop_graph, dialog.user_id)
 
     dialog.dialog_infos(watched, edgelist, prefered_prop, prefered_objects, reward)
-    
+
     if next_step:
         dialog.subgraph = response
 
@@ -150,11 +150,10 @@ def answer():
 
             response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
 
-            dialog.ask = response['ask']
-
             dialog.dialog_properties_infos(top, dif_properties)
-        else:
-            dialog.ask = response['ask']
+    
+    if "ask" in response:
+        dialog.ask = response['ask']
 
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
