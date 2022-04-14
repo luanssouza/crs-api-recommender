@@ -14,6 +14,7 @@ from src.dialog.dialog import Dialog
 from src import main, utils, bucket
 
 from src.services.dialog_service import insert_dialog_dict
+from src.services.recommendation_service import insert_recommendation_dict
 
 from random import seed
 from pathlib import Path
@@ -182,6 +183,14 @@ def recommend():
     dialog.dialog_properties_infos(top, dif_properties)
     dialog.ask = response['ask']
 
+    rec = {
+        "dialogId": 1, "movieId": response["movie_id"], 
+        "imdbId": response["imdbId"],  "properties": response["properties"], 
+        "requested": True
+        }
+        
+    insert_recommendation_dict(rec)
+
     bucket.save_object(dialog.dialog_id, dialog)
 
     return response
@@ -190,4 +199,4 @@ def dialogpath(dialog_id):
     return '{0}/{1}.joblib'.format(dialog_path, dialog_id)
 
 if __name__ == "__main__":
-    app.run(debug=True,port=os.environ.get('PORT', '5000'))
+    app.run(host='0.0.0.0',port=os.environ.get('PORT', '5000'))
