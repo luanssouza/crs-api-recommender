@@ -1,4 +1,7 @@
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, request
 
 import numpy as np
@@ -7,8 +10,10 @@ import pandas as pd
 from joblib import dump, load
 
 from src.bandit.bandit_factory import bandit_factory
-from src.models.dialog import Dialog
+from src.dialog.dialog import Dialog
 from src import main, utils, bucket
+
+from src.services.dialog_service import insert_dialog_dict
 
 from random import seed
 from pathlib import Path
@@ -65,6 +70,8 @@ def init():
     dialog = Dialog(dialog_id, "U7315", g_zscore, None, edgelist, ban)
 
     properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore, movie_rate, age, age_auth)
+
+    insert_dialog_dict({"telegramId": dialog_id, "age": age, "authorization": age_auth})
 
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
@@ -183,4 +190,4 @@ def dialogpath(dialog_id):
     return '{0}/{1}.joblib'.format(dialog_path, dialog_id)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=os.environ.get('PORT', '5000'))
+    app.run(debug=True,port=os.environ.get('PORT', '5000'))
