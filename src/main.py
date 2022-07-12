@@ -146,6 +146,25 @@ def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefere
     # updated bandit based on the response of the user
     return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop, reward
 
+def recommend_entropy(full_prop_graph, sub_graph, watched, prefered_objects, prefered_prop, edgelist):
+    graph_entropy = entropy.calculate_entropy(sub_graph, 'movie_id')
+
+    # case if all movies with properties were recommended but no movies were accepted by user
+    if len(graph_entropy) == 0:
+        return { "response": "You have already watched all the movies with the properties you liked :("}, True, [], []
+
+    m_id = max(graph_entropy, key=graph_entropy.get)
+    
+    rec = full_prop_graph.loc[m_id]['title'].unique()[0]
+    m_id = str(m_id)
+    imdb_id = full_prop_graph.loc[m_id]['imdbId'].unique()[0]
+    props = []
+
+    for i in range(0, len(prefered_prop)):
+        t = prefered_prop[i]
+        props.append({ "id": i+1, "property": str(t[0]), "object": str(t[1])})
+
+    return { "recommendation": rec, "properties": props, "ask": 1, "movie_id": m_id, "imdbId": imdb_id }, top_m, []
 
 def recommendation_entropy(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m, full_prop_graph, user_id):
 
