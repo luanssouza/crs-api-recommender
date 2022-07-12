@@ -123,7 +123,9 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
     return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop, reward
 
 def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m, full_prop_graph, user_id):
-    
+
+    top_m = graph.order_movies_by_pagerank(sub_graph, edgelist, watched, prefered_objects, [0.8, 0.2], True)
+
     m_id = top_m.index[0]
     rec = full_prop_graph.loc[m_id]['title'].unique()[0]
     imdb_id = full_prop_graph.loc[m_id]['imdbId'].unique()[0]
