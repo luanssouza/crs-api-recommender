@@ -13,8 +13,21 @@ class Dialog(Base):
     object = Column(String(50))
     createdAt = Column(DateTime(timezone=True), default=func.now())
     updatedAt = Column(DateTime(timezone=True))
+    
+    @classmethod
+    def fromdict(self, telegramId, age, authorization):
+        instance = self()
+        
+        instance.telegramId = telegramId
+        instance.age = age
+        instance.authorization = authorization
 
-    def __init__(self, telegramId, age, authorization):
-        self.telegramId = telegramId
-        self.age = age
-        self.authorization = authorization
+        return instance
+
+    @classmethod
+    def fromdict(self, id):
+        instance = self()
+        
+        instance.id = id
+
+        return instance

@@ -13,7 +13,7 @@ from src.bandit.bandit_factory import bandit_factory
 from src.dialog.dialog import Dialog
 from src import main, utils, bucket
 
-from src.services.dialog_service import insert_dialog_dict
+import src.services.dialog_service as dg_service
 from src.services.recommendation_service import insert_recommendation_dict
 
 from random import seed
@@ -27,7 +27,7 @@ from src.errorHandlers import error_blueprint
 from src.swagger import swagger_blueprint
 
 app.register_blueprint(swagger_blueprint)
-app.register_blueprint(error_blueprint)
+#app.register_blueprint(error_blueprint)
 
 # import database and import of the ratings
 full_prop_graph = pd.read_csv("resources/wikidata_integration_small.csv")
@@ -72,7 +72,7 @@ def init():
 
     properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore, movie_rate, age, age_auth)
 
-    insert_dialog_dict({"telegramId": dialog_id, "age": age, "authorization": age_auth})
+    dg_service.insert_dialog_dict({"telegramId": dialog_id, "age": age, "authorization": age_auth})
 
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
@@ -91,6 +91,8 @@ def second():
     dialog = bucket.loads_object(dialog_id)
 
     dialog.p_chosen = data['property']
+
+    dg_service.update_property_dialog_dict(1, dialog.p_chosen)
 
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)

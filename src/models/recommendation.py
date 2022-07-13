@@ -1,3 +1,4 @@
+from numpy import recarray
 from sqlalchemy import Boolean, Column, DateTime, Integer, ForeignKey, String, func
 from sqlalchemy.sql.sqltypes import JSON
 
@@ -14,9 +15,14 @@ class Recommendation(Base):
     requested = Column(Boolean, default=False)
     created = Column(DateTime(timezone=True), default=func.now())
 
-    def __init__(self, dialogId, movieId, imdbId, properties, requested = False):
-        self.dialogId = dialogId
-        self.movieId = movieId
-        self.imdbId = imdbId
-        self.properties = properties
-        self.requested = requested
+    @classmethod
+    def fromdict(self, dialogId, movieId, imdbId, properties, requested = False):
+        instance = self()
+        
+        instance.dialogId = dialogId
+        instance.movieId = movieId
+        instance.imdbId = imdbId
+        instance.properties = properties
+        instance.requested = requested
+
+        return instance
