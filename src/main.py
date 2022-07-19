@@ -86,7 +86,7 @@ def recommend(full_prop_graph, sub_graph, watched, prefered_objects, prefered_pr
         t = prefered_prop[i]
         props.append({ "id": i+1, "property": str(t[0]), "object": str(t[1])})
 
-    return { "recommendation": rec, "properties": props, "ask": 1, "movie_id": m_id, "imdbId": imdb_id }, top_m, []
+    return { "recommendation": rec, "properties": props, "ask": 1, "movie_id": m_id, "imdbId": imdb_id }, True, top_m, []
 
 def answer(sub_graph, ask, ans, watched, edgelist, prefered_objects, prefered_prop, top, dif_properties, full_prop_graph, user_id):
     if ask == 0:
@@ -164,7 +164,7 @@ def recommend_entropy(full_prop_graph, sub_graph, watched, prefered_objects, pre
         t = prefered_prop[i]
         props.append({ "id": i+1, "property": str(t[0]), "object": str(t[1])})
 
-    return { "recommendation": rec, "properties": props, "ask": 1, "movie_id": m_id, "imdbId": imdb_id }, top_m, []
+    return { "recommendation": rec, "properties": props, "ask": 1, "movie_id": m_id, "imdbId": imdb_id }, True, [], []
 
 def recommendation_entropy(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m, full_prop_graph, user_id):
 
