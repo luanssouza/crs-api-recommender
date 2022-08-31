@@ -54,17 +54,17 @@ def init():
     print("data: {0}".format(data))
     
     dialog_id = data['dialogId']
-
+    
+    is_proposal = bool(data['isProposal']) if "isProposal" in data else True 
     age = int(data['age']) if "age" in data else 18
     age_auth = data['ageAuth'] if "ageAuth" in data else 0
-
 
     # create bandit to decide when to ask and recommend
     ban = bandit_factory()
 
-    dialog = Dialog(dialog_id, "U7315", g_zscore, None, edgelist, ban)
+    dialog = Dialog(dialog_id, "U7315", is_proposal, g_zscore, None, edgelist, ban)
 
-    properties, dialog.subgraph = main.init_conversation(full_prop_graph, ratings, g_zscore, movie_rate, age, age_auth)
+    properties, dialog.subgraph = main.init_conversation(full_prop_graph, movie_rate, age, age_auth)
 
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
@@ -87,7 +87,7 @@ def second():
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
 
-    return { "characteristics":  main.second_interation(dialog.subgraph, dialog.p_chosen).tolist() }
+    return { "characteristics":  main.second_interation(dialog).tolist() }
 
 @app.route("/third", methods = ['POST'])
 def third():
@@ -102,16 +102,16 @@ def third():
 
     dialog.o_chosen = data['object']
     
-    prefered_objects, prefered_prop = main.third_interation(dialog.subgraph, dialog.o_chosen, dialog.p_chosen, ratings)
+    prefered_objects, prefered_prop = main.third_interation(dialog)
 
     dialog.prefered_infos(prefered_prop, prefered_objects)
 
-    subgraph, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
+    subgraph, next_step, top, dif_properties = main.conversation(full_prop_graph, "", dialog)
     
     dialog.subgraph = subgraph
     dialog.dialog_properties_infos(top, dif_properties)
 
-    response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
+    response, next_step, top, dif_properties = main.conversation(full_prop_graph, "no", dialog)
 
     dialog.dialog_properties_infos(top, dif_properties)
     dialog.ask = response['ask']
@@ -134,21 +134,21 @@ def answer():
     # dialog = load(dialogpath(dialog_id))
     dialog = bucket.loads_object(dialog_id)
 
-    response, next_step, watched, edgelist, prefered_objects, prefered_prop, reward = main.answer(dialog.subgraph, dialog.ask, resp, dialog.watched, dialog.edgelist, dialog.prefered_objects, dialog.prefered_prop, dialog.top, dialog.dif_properties, full_prop_graph, dialog.user_id)
+    response, next_step, watched, edgelist, prefered_objects, prefered_prop, reward = main.answer(full_prop_graph, resp, dialog)
 
     dialog.dialog_infos(watched, edgelist, prefered_prop, prefered_objects, reward)
 
     if next_step:
         dialog.subgraph = response
 
-        response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, resp, dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
+        response, next_step, top, dif_properties = main.conversation(full_prop_graph, resp, dialog)
 
         dialog.dialog_properties_infos(top, dif_properties)
 
         if not next_step:
             dialog.subgraph = response
 
-            response, next_step, top, dif_properties = main.conversation(full_prop_graph, dialog.subgraph, "no", dialog.g_zscore, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.user_id, dialog.p_chosen, dialog.o_chosen, dialog.edgelist, dialog.bandit)
+            response, next_step, top, dif_properties = main.conversation(full_prop_graph, "no", dialog)
 
             dialog.dialog_properties_infos(top, dif_properties)
     
@@ -167,14 +167,15 @@ def recommend():
     print("data: {0}".format(data))
 
     dialog_id = data['dialogId']
-
+    # dialog = load(dialogpath(dialog_id))
     dialog = bucket.loads_object(dialog_id)
 
-    response, top, dif_properties = main.recommend(full_prop_graph, dialog.subgraph, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.edgelist)
+    response, next_step, top, dif_properties = main.recommend(full_prop_graph, dialog.subgraph, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.edgelist)
 
     dialog.dialog_properties_infos(top, dif_properties)
     dialog.ask = response['ask']
 
+    # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
 
     return response

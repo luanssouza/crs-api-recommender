@@ -31,6 +31,7 @@ class Dialog:
         self, 
         dialog_id: str, 
         user_id: str,
+        is_proposal: bool,
         g_zscore: dict,
         subgraph: pd.DataFrame, 
         edgelist: pd.DataFrame,
@@ -43,6 +44,7 @@ class Dialog:
         # Identifiers
         self.__dialog_id = dialog_id
         self.__user_id = user_id
+        self.__is_proposal = is_proposal
 
         # Graph properties
         self.__edgelist = edgelist
@@ -82,6 +84,12 @@ class Dialog:
 
     def __get_user_id(self):
         return self.__user_id
+
+    def __set_is_proposal(self, is_proposal: bool = None):
+        self.__is_proposal = is_proposal
+
+    def __get_is_proposal(self):
+        return self.__is_proposal
 
     def __set_dialog_id(self, dialog_id: int = None):
         self.__dialog_id = dialog_id
@@ -152,6 +160,8 @@ class Dialog:
     dialog_id = property(__get_dialog_id, __set_dialog_id)
 
     user_id  = property(__get_user_id, __set_user_id)
+
+    is_proposal  = property(__get_is_proposal, __set_is_proposal)
 
     watched  = property(__get_watched, __set_watched)
 
