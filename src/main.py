@@ -79,20 +79,25 @@ def answer(full_prop_graph, resp, dialog):
     prefered_prop = dialog.prefered_prop
     dif_properties = dialog.dif_properties
     user_id = dialog.user_id
+    is_proposal = dialog.is_proposal
     
     if ask == 0:
         return properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, dif_properties)
     else:
-        return recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, full_prop_graph, user_id)
+        return recommendation(full_prop_graph, resp, sub_graph, watched, edgelist, prefered_objects, prefered_prop, user_id, is_proposal)
 
 def recommend(full_prop_graph, dialog):
+
     sub_graph = dialog.subgraph
     watched = dialog.watched
     edgelist = dialog.edgelist
     prefered_objects = dialog.prefered_objects
     prefered_prop = dialog.prefered_prop
 
-    return recommend_proposal(full_prop_graph, sub_graph, watched, prefered_objects, prefered_prop, edgelist) 
+    if dialog.is_proposal:
+        return recommend_proposal(full_prop_graph, sub_graph, watched, prefered_objects, prefered_prop, edgelist)
+    else: 
+        return recommend_entropy(full_prop_graph, sub_graph, watched, prefered_objects, prefered_prop, edgelist)
 
 def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, dif_properties):
 
@@ -121,9 +126,11 @@ def properties(sub_graph, resp, watched, edgelist, prefered_objects, prefered_pr
                 
     return sub_graph, True, watched, edgelist, prefered_objects, prefered_prop, reward
 
-def recommendation(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, full_prop_graph, user_id):
-
-    return recommendation_proposal(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, full_prop_graph, user_id)
+def recommendation(full_prop_graph, resp, sub_graph, watched, edgelist, prefered_objects, prefered_prop, user_id, is_proposal):
+    if is_proposal:
+        return recommendation_proposal(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, full_prop_graph, user_id)
+    else:
+        return recommendation_entropy(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, full_prop_graph, user_id)
 
 def recommend_proposal(full_prop_graph, sub_graph, watched, prefered_objects, prefered_prop, edgelist):
     top_m = graph.order_movies_by_pagerank(sub_graph, edgelist, watched, prefered_objects, [0.8, 0.2], True)
@@ -177,7 +184,6 @@ def recommend_entropy(full_prop_graph, sub_graph, watched, prefered_objects, pre
     m_id = max(graph_entropy, key=graph_entropy.get)
     
     rec = full_prop_graph.loc[m_id]['title'].unique()[0]
-    m_id = str(m_id)
     imdb_id = full_prop_graph.loc[m_id]['imdbId'].unique()[0]
     props = []
 
@@ -187,7 +193,7 @@ def recommend_entropy(full_prop_graph, sub_graph, watched, prefered_objects, pre
 
     return { "recommendation": rec, "properties": props, "ask": 1, "movie_id": m_id, "imdbId": imdb_id }, True, [], []
 
-def recommendation_entropy(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, top_m, full_prop_graph, user_id):
+def recommendation_entropy(sub_graph, resp, watched, edgelist, prefered_objects, prefered_prop, full_prop_graph, user_id):
 
     graph_entropy = entropy.calculate_entropy(sub_graph, 'movie_id')
 

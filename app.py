@@ -54,15 +54,15 @@ def init():
     print("data: {0}".format(data))
     
     dialog_id = data['dialogId']
-
+    
+    is_proposal = bool(data['isProposal']) if "isProposal" in data else True 
     age = int(data['age']) if "age" in data else 18
     age_auth = data['ageAuth'] if "ageAuth" in data else 0
-
 
     # create bandit to decide when to ask and recommend
     ban = bandit_factory()
 
-    dialog = Dialog(dialog_id, "U7315", g_zscore, None, edgelist, ban)
+    dialog = Dialog(dialog_id, "U7315", is_proposal, g_zscore, None, edgelist, ban)
 
     properties, dialog.subgraph = main.init_conversation(full_prop_graph, movie_rate, age, age_auth)
 
