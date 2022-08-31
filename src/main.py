@@ -207,7 +207,7 @@ def recommendation_entropy(sub_graph, resp, watched, edgelist, prefered_objects,
     reward = 0
 
     if resp == "yes":
-        return { "recommendation": rec, "movie_id": str(m_id), "imdbId": imdb_id }, False, watched, edgelist, prefered_objects, prefered_prop, reward
+        return { "recommendation": rec, "movie_id": m_id, "imdbId": imdb_id }, False, watched, edgelist, prefered_objects, prefered_prop, reward
     else:
         if resp == "watched":
             reward = 1
