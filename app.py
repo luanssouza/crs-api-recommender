@@ -170,7 +170,7 @@ def recommend():
     # dialog = load(dialogpath(dialog_id))
     dialog = bucket.loads_object(dialog_id)
 
-    response, next_step, top, dif_properties = main.recommend(full_prop_graph, dialog.subgraph, dialog.watched, dialog.prefered_objects, dialog.prefered_prop, dialog.edgelist)
+    response, next_step, top, dif_properties = main.recommend(full_prop_graph, dialog)
 
     dialog.dialog_properties_infos(top, dif_properties)
     dialog.ask = response['ask']
