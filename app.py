@@ -119,6 +119,7 @@ def third():
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
 
+    print("return data: {0}".format(response))
     return response
 
 @app.route("/answer", methods = ['POST'])
@@ -158,6 +159,7 @@ def answer():
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
 
+    print("return data: {0}".format(response))
     return response
 
 @app.route("/recommend", methods = ['POST'])
@@ -178,6 +180,7 @@ def recommend():
     # dump(dialog, dialogpath(dialog.dialog_id))
     bucket.save_object(dialog.dialog_id, dialog)
 
+    print("return data: {0}".format(response))
     return response
 
 def dialogpath(dialog_id):
