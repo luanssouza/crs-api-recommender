@@ -39,7 +39,7 @@ def conversation(full_prop_graph, resp, dialog):
 
 
     if len(sub_graph) == 0 or len(sub_graph.index.unique()) == 0:
-        return { "response": "There are no movies that corresponds to your preferences on our database or you already watched them all"}, True, [], []
+        return { "error": "There are no movies that corresponds to your preferences on our database or you already watched them all", "end": True }, True, [], []
     # while user did not like recommendation or property suggestion do not shrink graph again
     # or if sub graph is empty there are no entries or there are no movies, recommendation fails
     if resp == "no" or resp == "watched":

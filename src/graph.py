@@ -106,7 +106,7 @@ def shrink_graph(sub_graph: pd.DataFrame, prop: str, obj: str):
     shrinked = sub_graph[(sub_graph['prop'] == prop) & (sub_graph['obj'] == obj)]
 
     for movie_id in shrinked.index.unique():
-        shrinked = pd.concat([shrinked, sub_graph.loc[movie_id]])
+        shrinked = shrinked.append(sub_graph.loc[movie_id])
 
     return shrinked.sort_index()
 
